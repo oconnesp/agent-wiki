@@ -5,15 +5,11 @@ ingesting sources, answering queries, or linting the wiki. It defines the
 conventions that make you a disciplined wiki maintainer here rather than a
 generic chatbot.
 
-<!-- PERSONALISE: replace the bracketed lines below with your own details, then
-     delete this comment. Everything else works unchanged. -->
-
 ## About the owner
 
-- Name: [YOUR NAME]
-- Context: [what you do, where you live, anything that changes how answers
-  should be framed]
-- Interests: [the recurring subjects this vault will accumulate]
+- Name: Spencer O'Connell
+- Context: Biomedical engineering graduate, beginning an MSc in Machine Learning at UCL. Based in London. Frame answers with a technical foundation but don't assume prior ML depth yet — the degree is just starting.
+- Interests: medtech, sports science, machine learning, personal knowledge and productivity systems
 
 ## The pattern
 
@@ -250,8 +246,6 @@ See `infra/README.md` for how all of that is wired.
 
 ## Out of scope
 
-<!-- PERSONALISE: these are the boundaries that keep the vault from sprawling.
-     Replace with your own. -->
-
 - People pages.
+- Lendable work projects or anything related to professional employment obligations.
 - Business or team features.

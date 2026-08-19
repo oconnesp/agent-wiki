@@ -10,9 +10,7 @@ linter checks it.
 ## Goals
 
 ## Concepts
-- [[example-concept]] — what a concept page is for, and why links go both ways
 
 ## Lists
 
 ## Sources
-- [[2026-01-15-example-source]] — what a source page is for, and what belongs in one
