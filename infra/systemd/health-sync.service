@@ -1,0 +1,10 @@
+[Unit]
+Description=Health data sync (Google Fit + Strava)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 %h/agent-wiki/infra/sync-health.py
+StandardOutput=journal
+StandardError=journal
