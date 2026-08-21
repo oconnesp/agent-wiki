@@ -139,7 +139,7 @@ def sync_day(con, access_token, date_str):
     for pt in gh_get(access_token, 'steps'):
         ts = pt.get('steps', {}).get('interval', {}).get('startTime', '')
         if ts[:10] == date_str:
-            steps_total += pt.get('steps', {}).get('count', 0)
+            steps_total += int(pt.get('steps', {}).get('count', 0))
 
     con.execute('''INSERT INTO daily
         (date, sleep_start, sleep_end, sleep_total_min, sleep_deep_min, sleep_light_min,
