@@ -100,8 +100,7 @@ def sync_day(con, access_token, date_str):
         interval = s.get('interval', {})
         start = interval.get('startTime', '')
         end   = interval.get('endTime', '')
-        if not start or isodate(start) not in (date_str,
-                str(datetime.date.fromisoformat(date_str) - datetime.timedelta(days=1))):
+        if not end or isodate(end) != date_str:
             continue
         sleep_start = start
         sleep_end   = end
