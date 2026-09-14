@@ -288,6 +288,9 @@ if __name__ == '__main__':
     try:
         print('Syncing Strava...')
         sync_strava(con, strava_access_token())
+    except urllib.error.HTTPError as e:
+        # A 401/403 body names the problem, e.g. a missing activity:read_all scope.
+        print(f'Strava error {e.code}: {e.read().decode()[:300]}', file=sys.stderr)
     except Exception as e:
         print(f'Strava error: {e}', file=sys.stderr)
         import traceback; traceback.print_exc()
