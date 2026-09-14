@@ -1,0 +1,36 @@
+# Sunday evening weekly training review.
+#
+# Reviews the past week's runs against the plan, then writes next week's
+# sessions from the 12-week programme into the plan block and delivers a
+# summary to Telegram.
+#
+# Reuses the training-check handler for context, plan-block writing, and
+# log appending. The prompt drives a weekly roll-forward rather than a
+# daily adaptation.
+#
+# Set TRAINING_CHAT_ID in ~/.config/claude-jobs/runtime.env before enabling.
+
+DESCRIPTION="Weekly training review"
+# 19:00 UTC = 20:00 BST (summer) / 19:00 GMT (winter)
+SCHEDULE="Sun *-*-* 19:00:00"
+
+WORKING_DIR="${AGENT_WIKI_REPO:-$HOME/agent-wiki}"
+MODEL="opus"
+EFFORT="medium"
+TOOLS=""
+
+SYSTEM_PROMPT="You are Spencer's running coach. You review the past week honestly and plan the next one from the programme. You never invent data."
+PROMPT_FILE="weekly-training-review.md"
+PRE_COMMAND="python3 infra/sync-health.py >/dev/null 2>&1; python3 infra/claude-jobs/handlers/training-check.py context"
+VALIDATOR="training-check.sh"
+POST_COMMAND="training-check.py"
+
+OVERLONG_POLICY="allow"
+HARD_MAX_CHARS="8000"
+
+DELIVERY="telegram"
+DELIVERY_TARGET="${TRAINING_CHAT_ID:-}"
+DELIVERY_TOKEN_FILE="$HOME/.claude/channels/telegram/bot.token"
+KEEP_OUTPUTS="20"
+
+ENABLED="1"
