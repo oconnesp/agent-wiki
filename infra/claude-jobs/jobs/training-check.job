@@ -1,0 +1,38 @@
+# Daily end-of-day check of the active training plan.
+#
+# Refreshes health data, then hands Claude the plan page and the last two
+# weeks of training data. Claude has no tools and cannot write: the handler
+# rewrites the plan block, change log and wiki log under the agent-wiki
+# operation lock, and rolls back if the linter fails. Nothing is sent on days
+# the plan did not change, and Claude is not called at all while no wiki page
+# is tagged active-plan.
+#
+# Set TRAINING_CHAT_ID in ~/.config/claude-jobs/runtime.env before enabling.
+# A dry run works without it.
+
+DESCRIPTION="Daily training plan check"
+# Server time is UTC: 21:15 is 22:15 in London during summer time.
+SCHEDULE="*-*-* 21:15:00"
+
+WORKING_DIR="${AGENT_WIKI_REPO:-$HOME/agent-wiki}"
+MODEL="opus"
+EFFORT="medium"
+TOOLS=""
+
+SYSTEM_PROMPT="You are a careful running coach. You adapt a flexible training plan to what the athlete actually did, and you never invent data."
+PROMPT_FILE="training-check.md"
+PRE_COMMAND="python3 infra/sync-health.py >/dev/null 2>&1; python3 infra/claude-jobs/handlers/training-check.py context"
+VALIDATOR="training-check.sh"
+POST_COMMAND="training-check.py"
+ALLOW_EMPTY_POST_OUTPUT="1"
+
+# The answer carries a whole week's plan; only the message part is sent.
+OVERLONG_POLICY="allow"
+HARD_MAX_CHARS="8000"
+
+DELIVERY="telegram"
+DELIVERY_TARGET="${TRAINING_CHAT_ID:-}"
+DELIVERY_TOKEN_FILE="$HOME/.claude/channels/telegram/bot.token"
+KEEP_OUTPUTS="30"
+
+ENABLED="1"
