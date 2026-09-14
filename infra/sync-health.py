@@ -306,6 +306,7 @@ def write_raw(con):
             parts.append(f'avg HR {hr}')
         lines.append(f"**{date}** — {name or exercise_type} | " + ' | '.join(parts))
 
+    RAW_DIR.mkdir(parents=True, exist_ok=True)
     out = RAW_DIR / f'health-{today}.md'
     out.write_text('\n'.join(lines) + '\n')
     print(f'Wrote {out}')

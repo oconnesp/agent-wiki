@@ -240,6 +240,50 @@ session JSON shape is documented at the top of `infra/trainer.py`.
   well, watch-outs, and next week's focus. Link it both ways with
   `[[training]]` and with every goal or concept page it discusses. Reply in
   chat with the three most important points only.
+- *Training plans*: when the owner sets a performance goal and asks for a
+  plan (for example "train me for a 20-minute 5k, three runs a week, but I
+  won't follow it strictly because I run with friends"), create one `goal`
+  page for it, tagged `[training, running, active-plan]` and linked both ways
+  with `[[training]]`. Only one page may carry `active-plan`; remove the tag
+  when a plan is finished or abandoned. Use exactly this structure, because
+  the `training-check` job reads and rewrites it:
+
+  ```markdown
+  ## Goal
+  Target, date if any, and the current estimate from recent runs.
+
+  ## Approach
+  Weekly shape, target paces, and how flexibility is handled.
+
+  ## This week
+  <!-- plan:start -->
+  Week of 2026-09-14
+  - **Tue 15** — Intervals: 5 × 1 km @ 3:55/km, 2 min jog recovery · planned
+  - **Thu 17** — Tempo: 20 min @ 4:15/km · planned
+  - **Sun 20** — Long easy: 10 km @ 5:15/km · planned
+  <!-- plan:end -->
+
+  ## Plan changes
+  <!-- changes:start -->
+  - 2026-09-14: Plan created
+  <!-- changes:end -->
+  ```
+
+  Statuses are `planned`, `done: <actual>` or `dropped`. Base paces on real
+  recent runs from `summary`, not on the target alone. The plan is flexible:
+  a social or unplanned run replaces the session it best matches, and the
+  rest of the week is reshaped around it.
+- *Plan updates from chat*: when the owner reports a run or a change ("ran
+  8k with friends", "can't run Thursday"), update the plan block and add a
+  line under Plan changes straight away. The `training-check` job does the
+  same every evening at 21:15 UTC from Google Health data and messages the
+  owner only when it changed something, so it will not repeat your update.
+- *Important emails* ("any important emails?"): search Gmail for unread mail
+  from the last three days, skipping promotions, social and newsletters.
+  Flag mail from real people expecting a reply, UCL and course admin,
+  deadlines, bookings and travel, bills, payments and security alerts. Reply
+  with at most five lines: sender, one-line gist, action needed. Say plainly
+  when nothing is important. Do not mark read, archive or label unless asked.
 - *Logging a session*: when the owner describes a workout in chat, parse it
   into the session JSON and log it straight away. Use one exercise name per
   movement consistently (check `gym` for existing names), convert pounds to

@@ -80,6 +80,7 @@ PROMPT=""
 PROMPT_FILE=""
 PRE_COMMAND=""
 POST_COMMAND=""
+ALLOW_EMPTY_POST_OUTPUT="0"
 GUARD_PATHS=""
 TIMEOUT="25min"
 DELIVERY="file"
@@ -176,9 +177,15 @@ prompt_text="$(resolve_prompt "$PROMPT" "$PROMPT_FILE" "prompt")"
 # out of Claude's hands: it reads what the job already fetched rather than
 # being given a tool to fetch it.
 if [[ -n "$PRE_COMMAND" ]]; then
-    if ! pre_output="$( cd "$WORKING_DIR" && eval "$PRE_COMMAND" )"; then
-        fail "PRE_COMMAND failed: $PRE_COMMAND"
+    # Exit status 3 means "nothing to do today": skip without calling Claude.
+    pre_status=0
+    pre_output="$( cd "$WORKING_DIR" && eval "$PRE_COMMAND" )" || pre_status=$?
+    if [[ "$pre_status" == 3 ]]; then
+        log "skipped: PRE_COMMAND reported nothing to do"
+        echo "Job '$JOB' skipped: nothing to do."
+        exit 0
     fi
+    [[ "$pre_status" == 0 ]] || fail "PRE_COMMAND failed: $PRE_COMMAND"
     [[ -n "${pre_output//[[:space:]]/}" ]] || fail "PRE_COMMAND produced no output"
     if [[ "$prompt_text" != *"{input}"* ]]; then
         fail "PRE_COMMAND is set but the prompt has no {input} placeholder"
@@ -342,7 +349,14 @@ if [[ -n "$POST_COMMAND" ]]; then
         | CLAUDE_JOB_DRY_RUN="$dry_flag" CLAUDE_JOB_NAME="$JOB" "$post_path")"; then
         fail "post command failed: $post_path"
     fi
-    [[ -n "${post_output//[[:space:]]/}" ]] || fail "post command produced no output to deliver"
+    if [[ -z "${post_output//[[:space:]]/}" ]]; then
+        # A handler that decided there is nothing worth sending, such as a
+        # plan check that changed nothing, opts in with ALLOW_EMPTY_POST_OUTPUT.
+        [[ "$ALLOW_EMPTY_POST_OUTPUT" == "1" ]] || fail "post command produced no output to deliver"
+        log "post command had nothing to deliver: $post_path"
+        echo "Job '$JOB' finished with nothing to deliver."
+        exit 0
+    fi
     output="$post_output"
     log "post command done: $post_path"
 fi
