@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Health data sync: Google Health API v4 (Fitbit Air) → SQLite + raw/
+Health data sync: Google Health API v4 (Fitbit Air) + Strava → SQLite + raw/
 Runs twice daily via systemd timer.
 """
 import json, os, sqlite3, urllib.request, urllib.parse, urllib.error
@@ -32,6 +32,21 @@ def db_connect():
         hrv_rmssd_min    REAL,
         hrv_rmssd_max    REAL,
         steps            INTEGER
+    )''')
+    con.execute('''CREATE TABLE IF NOT EXISTS activities (
+        strava_id        INTEGER PRIMARY KEY,
+        date             TEXT NOT NULL,
+        start_time_local TEXT,
+        name             TEXT,
+        sport_type       TEXT,
+        distance_m       REAL,
+        moving_time_s    INTEGER,
+        elapsed_time_s   INTEGER,
+        elevation_m      REAL,
+        avg_hr           REAL,
+        max_hr           REAL,
+        avg_speed_mps    REAL,
+        suffer_score     REAL
     )''')
     con.commit()
     return con
@@ -160,6 +175,63 @@ def sync_day(con, access_token, date_str):
           f'rhr={rhr} hrv={hrv_avg} steps={steps_total}')
 
 # ---------------------------------------------------------------------------
+# Strava
+# ---------------------------------------------------------------------------
+
+def strava_access_token():
+    token_file = CONFIG_DIR / 'strava_token.json'
+    token = json.loads(token_file.read_text())
+    if token.get('expires_at', 0) > datetime.datetime.now().timestamp() + 300:
+        return token['access_token']
+    data = urllib.parse.urlencode({
+        'client_id': token['client_id'],
+        'client_secret': token['client_secret'],
+        'refresh_token': token['refresh_token'],
+        'grant_type': 'refresh_token',
+    }).encode()
+    req = urllib.request.Request('https://www.strava.com/oauth/token', data=data, method='POST')
+    resp = json.loads(urllib.request.urlopen(req).read())
+    # Strava rotates refresh tokens; persist the new one before anything else.
+    token.update({k: resp[k] for k in ('access_token', 'refresh_token', 'expires_at')})
+    token_file.write_text(json.dumps(token))
+    return resp['access_token']
+
+def sync_strava(con, access_token):
+    # Backfill two months on first run, then re-read a week so edits and late
+    # uploads (HR, titles) are picked up.
+    empty = con.execute('SELECT COUNT(*) FROM activities').fetchone()[0] == 0
+    days = 60 if empty else 7
+    after = int((datetime.datetime.now() - datetime.timedelta(days=days)).timestamp())
+    page = 1
+    while True:
+        url = ('https://www.strava.com/api/v3/athlete/activities?'
+               + urllib.parse.urlencode({'after': after, 'per_page': 100, 'page': page}))
+        req = urllib.request.Request(url, headers={'Authorization': 'Bearer ' + access_token})
+        activities = json.loads(urllib.request.urlopen(req).read())
+        for a in activities:
+            start_local = a.get('start_date_local', a['start_date'])
+            con.execute('''INSERT INTO activities
+                (strava_id, date, start_time_local, name, sport_type, distance_m, moving_time_s,
+                 elapsed_time_s, elevation_m, avg_hr, max_hr, avg_speed_mps, suffer_score)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
+                ON CONFLICT(strava_id) DO UPDATE SET
+                    date=excluded.date, start_time_local=excluded.start_time_local,
+                    name=excluded.name, sport_type=excluded.sport_type,
+                    distance_m=excluded.distance_m, moving_time_s=excluded.moving_time_s,
+                    elapsed_time_s=excluded.elapsed_time_s, elevation_m=excluded.elevation_m,
+                    avg_hr=excluded.avg_hr, max_hr=excluded.max_hr,
+                    avg_speed_mps=excluded.avg_speed_mps, suffer_score=excluded.suffer_score''',
+                (a['id'], start_local[:10], start_local, a.get('name'),
+                 a.get('sport_type') or a.get('type'), a.get('distance'), a.get('moving_time'),
+                 a.get('elapsed_time'), a.get('total_elevation_gain'), a.get('average_heartrate'),
+                 a.get('max_heartrate'), a.get('average_speed'), a.get('suffer_score')))
+        con.commit()
+        print(f'  Strava page {page}: {len(activities)} activities (last {days} days)')
+        if len(activities) < 100:
+            break
+        page += 1
+
+# ---------------------------------------------------------------------------
 # Raw summary
 # ---------------------------------------------------------------------------
 
@@ -181,6 +253,18 @@ def write_raw(con):
             f"steps {d['steps'] or '-'}"
         )
 
+    lines += ['', '## Strava activities (last 14 days)', '']
+    acts = con.execute('''SELECT date, name, sport_type, distance_m, moving_time_s, avg_hr
+        FROM activities WHERE date >= ? ORDER BY start_time_local DESC''',
+        (str(today - datetime.timedelta(days=13)),)).fetchall()
+    if not acts:
+        lines.append('No activities.')
+    for date, name, sport, dist, secs, hr in acts:
+        dist_s = f'{dist / 1000:.2f}km' if dist else '-'
+        secs_s = f'{round(secs / 60)}min' if secs else '-'
+        hr_s = round(hr) if hr else '-'
+        lines.append(f"**{date}** — {name} ({sport}) | {dist_s} | {secs_s} | avg HR {hr_s}")
+
     out = RAW_DIR / f'health-{today}.md'
     out.write_text('\n'.join(lines) + '\n')
     print(f'Wrote {out}')
@@ -200,6 +284,12 @@ if __name__ == '__main__':
             sync_day(con, access_token, d)
     except Exception as e:
         print(f'Sync error: {e}', file=sys.stderr)
+        import traceback; traceback.print_exc()
+    try:
+        print('Syncing Strava...')
+        sync_strava(con, strava_access_token())
+    except Exception as e:
+        print(f'Strava error: {e}', file=sys.stderr)
         import traceback; traceback.print_exc()
     write_raw(con)
     con.close()

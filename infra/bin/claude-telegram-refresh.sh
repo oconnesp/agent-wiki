@@ -26,9 +26,11 @@ fi
 session_age=$(( (now_usec - started_usec) / 1000000 ))
 [ "$session_age" -ge "$min_session_age" ] || exit 0
 
+# The git-sync timer fires on the same 15-minute cadence, so a non-blocking
+# attempt loses to it every time. Wait for the short sync to finish instead.
 exec 9>"$lock_file"
-if ! flock -n 9; then
-    log "refresh deferred: repository operation holds the lock"
+if ! flock -w 120 9; then
+    log "refresh deferred: repository operation held the lock for 120s"
     exit 0
 fi
 
@@ -52,4 +54,6 @@ if [ "$session_age" -ge "$max_session_age" ]; then
 else
     log "refreshing idle context at age ${session_age}s after ${idle_age}s idle"
 fi
+# Release the lock first: the stopping session's SessionEnd hook takes it too.
+exec 9>&-
 systemctl --user restart claude-telegram.service

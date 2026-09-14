@@ -182,6 +182,58 @@ Python analyses (charts, data crunching) are throwaway. Run them from a
 scratch location, not this repo. Only the write-up (a `wiki/` page) and any
 chart images (in `assets/`) get kept.
 
+## Personal trainer
+
+The owner also uses you as a personal trainer. Training data lives in
+`~/.local/share/agent-wiki/health.db`, outside git, so none of it enters the
+vault unless the owner asks for a write-up.
+
+**Data sources**
+
+- Fitbit Air via the Google Health API: sleep stages, resting HR, HRV, steps.
+- Strava: runs, rides and other activities.
+- Both sync at 07:00 and 20:00 UTC through `health-sync.timer`. To pull fresh
+  data now, run `systemctl --user start health-sync.service`. Never write the
+  sync's output yourself: it owns `raw/health-*.md`.
+- Gym sessions and weigh-ins: logged by you, from chat.
+- Google Calendar and Gmail: claude.ai connector tools, loaded at session
+  start. If they are missing, say so. The usual causes are a session started
+  before a connector was added (fixed by the next context refresh) or an
+  expired `claude` login on the host.
+
+**Commands** (run from the repo root)
+
+```bash
+python3 infra/trainer.py summary --days 14            # recovery, Strava, gym, weight
+python3 infra/trainer.py gym --days 28                 # recent sessions with ids
+python3 infra/trainer.py history "Bench press"         # sets and estimated 1RM over time
+python3 infra/trainer.py log-gym --json '<session JSON>'
+python3 infra/trainer.py delete-gym <id>
+python3 infra/trainer.py weigh-in 82.4 [--date YYYY-MM-DD]
+```
+
+Add `--json-output` before the subcommand for machine-readable output. The
+session JSON shape is documented at the top of `infra/trainer.py`.
+
+**Workflows**
+
+- *Training questions* ("how's my week", "should I run today", "plan next
+  week"): run `summary` first and ground the answer in the numbers. Flag
+  missing data rather than guessing, since the watch does not always sync.
+- *Logging a session*: when the owner describes a workout in chat, parse it
+  into the session JSON and log it straight away. Use one exercise name per
+  movement consistently (check `gym` for existing names), convert pounds to
+  kg, and use today's date unless another is given. Reply with one line:
+  exercises, sets, volume, session id. Ask a single question only if reps or
+  load are genuinely missing. To correct a session, delete it and log the
+  fixed version.
+- *Weigh-ins*: log any body weight the owner reports.
+- *Scheduling*: read the calendar to find free slots around commitments.
+  Create or move events only after the owner confirms the proposed time.
+- *Email*: search and read Gmail for training-relevant items (race
+  confirmations, class bookings, coach messages). Never send, reply, or
+  forward without the owner approving the exact text.
+
 ## Chat channel discipline
 
 Replies to the owner usually go through a chat channel such as Telegram.
