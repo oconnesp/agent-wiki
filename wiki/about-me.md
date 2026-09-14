@@ -2,8 +2,9 @@
 type: overview
 tags: [identity, background, preferences]
 created: 2026-08-19
-updated: 2026-08-19
-related: []
+updated: 2026-09-14
+related:
+  - "[[training]]"
 ---
 
 # About Me

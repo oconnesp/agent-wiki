@@ -6,6 +6,7 @@ linter checks it.
 
 ## Overview
 - [[about-me]] — who I am, where I'm heading, and how I want to be talked to
+- [[training]] — hub for training goals, constraints, reviews and the data behind the personal trainer
 
 ## Goals
 

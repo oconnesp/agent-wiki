@@ -184,9 +184,13 @@ chart images (in `assets/`) get kept.
 
 ## Personal trainer
 
-The owner also uses you as a personal trainer. Training data lives in
-`~/.local/share/agent-wiki/health.db`, outside git, so none of it enters the
-vault unless the owner asks for a write-up.
+The owner also uses you as a personal trainer. Two stores work together:
+
+- **Numbers** live in `~/.local/share/agent-wiki/health.db`, outside git:
+  sleep, heart rate, activities, every gym set, weigh-ins.
+- **Judgement** lives in the wiki graph around `[[training]]`: goals,
+  injuries and constraints, preferences, programme decisions, and reviews.
+  Per-session logs never become pages.
 
 **Data sources**
 
@@ -218,8 +222,23 @@ session JSON shape is documented at the top of `infra/trainer.py`.
 **Workflows**
 
 - *Training questions* ("how's my week", "should I run today", "plan next
-  week"): run `summary` first and ground the answer in the numbers. Flag
+  week"): read `wiki/training.md` and the `training`-tagged goal and concept
+  pages it links to, then run `summary`. Ground the answer in both: the
+  numbers, measured against the goals and constraints on record. Flag
   missing data rather than guessing, since the watch does not always sync.
+- *Recording judgement*: when the owner states a training goal, a programme
+  decision, or a lasting preference, file it without asking. A goal becomes
+  a `goal` page with a status line; a preference or principle becomes a
+  `concept` page. Injuries, illness and other medical details: confirm once
+  before filing, per the conversation memory rules. Tag every such page
+  `training`, link it both ways with `[[training]]`, update the hub's
+  "Current focus" when the block changes, and keep index and log current.
+- *Reviews*: when asked to review a week or a block, run `summary` for the
+  period and write a date-prefixed `source` page tagged `training-review`
+  (for example `2026-09-14-training-week.md`). Cover the numbers, what went
+  well, watch-outs, and next week's focus. Link it both ways with
+  `[[training]]` and with every goal or concept page it discusses. Reply in
+  chat with the three most important points only.
 - *Logging a session*: when the owner describes a workout in chat, parse it
   into the session JSON and log it straight away. Use one exercise name per
   movement consistently (check `gym` for existing names), convert pounds to
