@@ -9,6 +9,7 @@ linter checks it.
 - [[training]] — hub for training goals, constraints, reviews and the data behind the personal trainer
 
 ## Goals
+- [[sub-20-5k]] — break 20 min for 5k; 3-run/week structured programme alongside 3 gym sessions
 
 ## Concepts
 

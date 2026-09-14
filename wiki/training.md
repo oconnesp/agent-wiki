@@ -5,6 +5,7 @@ created: 2026-09-14
 updated: 2026-09-14
 related:
   - "[[about-me]]"
+  - "[[sub-20-5k]]"
 ---
 
 # Training
@@ -16,12 +17,11 @@ the judgement.
 
 ## Current focus
 
-Not recorded yet. The trainer fills this in once Spencer describes the
-current block, such as base building, a strength phase, or race preparation.
+Running: sub-20 min 5k build. 3 runs/week (intervals + long easy + moderate) alongside 3 gym sessions (2 upper, 1 lower). See [[sub-20-5k]] for the active plan.
 
 ## Goals
 
-Goal pages tagged `training` link here. None recorded yet.
+- [[sub-20-5k]] — break 20 min for 5k; current estimated ~27 min, structured 3×/week run programme
 
 ```dataview
 TABLE WITHOUT ID file.link AS Goal, updated AS Updated

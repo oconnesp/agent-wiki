@@ -12,6 +12,11 @@ grep "^## \[" wiki/log.md
 - Rewrote about-me.md with Spencer's background and preferences.
 - Removed example pages; index cleaned.
 
+## [2026-09-14] ingest | Training goal: sub-20 min 5k
+- Created sub-20-5k.md as active goal page with first week's plan.
+- Updated training.md Current focus and Goals sections; linked both ways.
+- Added goal to index.
+
 ## [2026-09-14] setup | Personal trainer hub
 - Created training.md as the overview hub for goals, constraints and reviews.
 - Linked it both ways with about-me and added it to the index.
