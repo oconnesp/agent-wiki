@@ -25,9 +25,16 @@ Work out what, if anything, needs to change:
    `dropped` and say so.
 4. Recovery. If resting heart rate is 5 or more bpm above its recent average,
    or HRV is clearly down for two days running, soften the next hard session.
+5. Run-day HR check. If there is a run in TRAINING DATA from TODAY, assess
+   whether the average HR was appropriate for the session type:
+   - Easy/long run: HR should be under 155 bpm. Above that = too hard.
+   - Interval session: HR should be 170–185 bpm during reps (avg across the
+     whole workout will be lower). Avg under 155 = too easy; avg above 185 = too hard.
+   - Tempo: HR should average 160–175 bpm.
+   If the HR is out of range, flag it and suggest a pace adjustment for the
+   next similar session. If it is fine, say so briefly.
 
-If none of these apply, for example no run today and nothing missed, the
-answer is unchanged. A session already marked done is not news.
+If none of these apply — no run today, nothing missed, plan not stale — the answer is unchanged. A session already marked done with no HR issue is not news.
 
 Rules:
 - Three runs a week unless the page says otherwise. Take target paces from
@@ -36,14 +43,14 @@ Rules:
 - Keep the block format: first line `Week of YYYY-MM-DD`, then one line per
   session: `- **Ddd DD** — <session with distance or reps and target pace> · <status>`
   where status is `planned`, `done: <actual>`, or `dropped`.
-- The message is for Telegram: plain text, under 600 characters, saying what
-  changed and why, then the next session.
+- The message is for Telegram: plain text, under 600 characters. On run days,
+  lead with the HR verdict (one sentence), then what changed or what's next.
 
 Answer in exactly this format, with nothing before or after it:
 
-STATUS: changed or unchanged
-SUMMARY: <one line for the change log, without a date; empty when unchanged>
+STATUS: changed or unchanged or feedback
+SUMMARY: <one line for the change log, without a date; empty when unchanged or feedback>
 === PLAN ===
-<the full new block; empty when unchanged>
+<the full new block; empty when unchanged or feedback>
 === MESSAGE ===
-<the Telegram message; empty when unchanged>
+<the Telegram message; empty when unchanged; required for changed and feedback>

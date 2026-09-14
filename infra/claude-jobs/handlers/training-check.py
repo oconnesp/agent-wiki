@@ -66,7 +66,7 @@ def context():
 
 
 def parse(answer):
-    status = re.search(r'^STATUS:\s*(changed|unchanged)\s*$', answer, re.M)
+    status = re.search(r'^STATUS:\s*(changed|unchanged|feedback)\s*$', answer, re.M)
     if not status:
         raise ValueError('answer has no STATUS line')
     summary = re.search(r'^SUMMARY:[ \t]*(.*)$', answer, re.M)
@@ -97,6 +97,13 @@ def wiki_lock(timeout=900):
 def apply(answer):
     status, summary, plan, message = parse(answer)
     if status == 'unchanged':
+        return 0
+    if status == 'feedback':
+        # Run-day HR commentary with no plan change — deliver the message only.
+        if os.environ.get('CLAUDE_JOB_DRY_RUN') == '1':
+            print('[dry run] feedback message:\n%s' % message)
+            return 0
+        print(message)
         return 0
     if not re.match(r'Week of \d{4}-\d\d-\d\d', plan) or not message:
         raise ValueError('a changed plan needs a block starting "Week of YYYY-MM-DD" and a message')
