@@ -2,7 +2,7 @@
 """
 Personal trainer data: gym logging, weigh-ins, and a combined training summary.
 
-Shares health.db with sync-health.py (Fitbit via Google Health, Strava).
+Shares health.db with sync-health.py (Fitbit Air via the Google Health API).
 Standard library only; runs on Python 3.8.
 
   trainer.py log-gym --json '{"type": "push", "exercises": [...]}'   (or JSON on stdin)
@@ -195,16 +195,16 @@ def exercise_history(con, exercise, days):
 def summary(con, days):
     start = since(days)
     result = {'from': start, 'to': str(datetime.date.today()),
-              'daily': [], 'activities': [], 'gym_sessions': load_sessions(con, days), 'weigh_ins': []}
+              'daily': [], 'exercises': [], 'gym_sessions': load_sessions(con, days), 'weigh_ins': []}
     if has_table(con, 'daily'):
         result['daily'] = [dict(r) for r in con.execute(
             'SELECT date, sleep_total_min, sleep_deep_min, sleep_rem_min, rhr, hrv_rmssd_avg, steps '
             'FROM daily WHERE date >= ? ORDER BY date DESC', (start,))]
-    if has_table(con, 'activities'):
-        result['activities'] = [dict(r) for r in con.execute(
-            'SELECT date, start_time_local, name, sport_type, distance_m, moving_time_s, elevation_m, '
-            'avg_hr, max_hr, suffer_score FROM activities WHERE date >= ? ORDER BY start_time_local DESC',
-            (start,))]
+    if has_table(con, 'exercises'):
+        result['exercises'] = [dict(r) for r in con.execute(
+            'SELECT date, start_time, exercise_type, display_name, duration_s, distance_m, avg_hr, '
+            'avg_pace_s_per_km, elevation_m, calories, run_vo2max FROM exercises '
+            'WHERE date >= ? ORDER BY start_time DESC', (start,))]
     result['weigh_ins'] = [dict(r) for r in con.execute(
         'SELECT date, weight_kg FROM weigh_ins WHERE date >= ? ORDER BY date DESC', (start,))]
     return result
@@ -219,19 +219,24 @@ def summary_markdown(sm):
             d['date'], d['sleep_total_min'] or '-', d['sleep_deep_min'] or '-', d['sleep_rem_min'] or '-',
             d['rhr'] or '-', fmt_num(d['hrv_rmssd_avg']), d['steps'] or '-'))
 
-    lines += ['', '## Cardio (Strava)']
-    if not sm['activities']:
-        lines.append('No Strava activities in this period.')
-    for a in sm['activities']:
-        dist = '%.2f km' % (a['distance_m'] / 1000) if a['distance_m'] else '-'
-        mins = '%d min' % round(a['moving_time_s'] / 60) if a['moving_time_s'] else '-'
-        pace = ''
-        if a['distance_m'] and a['moving_time_s'] and a['sport_type'] in ('Run', 'TrailRun', 'VirtualRun'):
-            secs = a['moving_time_s'] / (a['distance_m'] / 1000)
-            pace = ' | %d:%02d /km' % (secs // 60, secs % 60)
-        lines.append('- %s %s (%s): %s, %s%s | avg HR %s | elev %s m' % (
-            a['date'], a['name'], a['sport_type'], dist, mins, pace,
-            fmt_num(a['avg_hr']), fmt_num(a['elevation_m'])))
+    lines += ['', '## Workouts (Google Health)']
+    if not sm['exercises']:
+        lines.append('No workouts recorded in this period.')
+    for e in sm['exercises']:
+        parts = ['%d min' % round(e['duration_s'] / 60) if e['duration_s'] else '-']
+        if e['distance_m']:
+            parts.append('%.2f km' % (e['distance_m'] / 1000))
+        if e['avg_pace_s_per_km'] and e['distance_m']:
+            parts.append('%d:%02d /km' % (e['avg_pace_s_per_km'] // 60, e['avg_pace_s_per_km'] % 60))
+        if e['avg_hr']:
+            parts.append('avg HR %s' % fmt_num(e['avg_hr']))
+        if e['elevation_m']:
+            parts.append('elev %s m' % fmt_num(e['elevation_m']))
+        if e['calories']:
+            parts.append('%d kcal' % round(e['calories']))
+        if e['run_vo2max']:
+            parts.append('VO2max %s' % fmt_num(e['run_vo2max']))
+        lines.append('- %s %s: %s' % (e['date'], e['display_name'] or e['exercise_type'], ', '.join(parts)))
 
     lines += ['', '## Gym']
     if not sm['gym_sessions']:

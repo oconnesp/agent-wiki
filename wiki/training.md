@@ -55,7 +55,8 @@ SORT created DESC
 
 ## Data behind this page
 
-- Fitbit Air, via the Google Health API, and Strava sync twice a day into
-  `health.db` on the server.
+- Fitbit Air syncs twice a day through the Google Health API into
+  `health.db` on the server: sleep, resting heart rate, HRV, steps, and
+  workouts including runs.
 - Gym sessions and weigh-ins are logged from Telegram with `infra/trainer.py`.
 - `python3 infra/trainer.py summary --days 14` prints the combined view.

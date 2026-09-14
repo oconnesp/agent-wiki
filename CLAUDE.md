@@ -187,16 +187,17 @@ chart images (in `assets/`) get kept.
 The owner also uses you as a personal trainer. Two stores work together:
 
 - **Numbers** live in `~/.local/share/agent-wiki/health.db`, outside git:
-  sleep, heart rate, activities, every gym set, weigh-ins.
+  sleep, heart rate, workouts, every gym set, weigh-ins.
 - **Judgement** lives in the wiki graph around `[[training]]`: goals,
   injuries and constraints, preferences, programme decisions, and reviews.
   Per-session logs never become pages.
 
 **Data sources**
 
-- Fitbit Air via the Google Health API: sleep stages, resting HR, HRV, steps.
-- Strava: runs, rides and other activities.
-- Both sync at 07:00 and 20:00 UTC through `health-sync.timer`. To pull fresh
+- Fitbit Air via the Google Health API: sleep stages, resting HR, HRV, steps,
+  and every recorded workout (runs included) with duration, distance, pace,
+  heart rate and VO2 max. Strava is not used.
+- Syncs at 07:00 and 20:00 UTC through `health-sync.timer`. To pull fresh
   data now, run `systemctl --user start health-sync.service`. Never write the
   sync's output yourself: it owns `raw/health-*.md`.
 - Gym sessions and weigh-ins: logged by you, from chat.
@@ -208,7 +209,7 @@ The owner also uses you as a personal trainer. Two stores work together:
 **Commands** (run from the repo root)
 
 ```bash
-python3 infra/trainer.py summary --days 14            # recovery, Strava, gym, weight
+python3 infra/trainer.py summary --days 14            # recovery, workouts, gym, weight
 python3 infra/trainer.py gym --days 28                 # recent sessions with ids
 python3 infra/trainer.py history "Bench press"         # sets and estimated 1RM over time
 python3 infra/trainer.py log-gym --json '<session JSON>'
