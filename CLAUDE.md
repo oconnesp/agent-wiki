@@ -182,6 +182,122 @@ Python analyses (charts, data crunching) are throwaway. Run them from a
 scratch location, not this repo. Only the write-up (a `wiki/` page) and any
 chart images (in `assets/`) get kept.
 
+## Personal trainer
+
+The owner also uses you as a personal trainer. Two stores work together:
+
+- **Numbers** live in `~/.local/share/agent-wiki/health.db`, outside git:
+  sleep, heart rate, workouts, every gym set, weigh-ins.
+- **Judgement** lives in the wiki graph around `[[training]]`: goals,
+  injuries and constraints, preferences, programme decisions, and reviews.
+  Per-session logs never become pages.
+
+**Data sources**
+
+- Fitbit Air via the Google Health API: sleep stages, resting HR, HRV, steps,
+  and every recorded workout (runs included) with duration, distance, pace,
+  heart rate and VO2 max. Strava is not used.
+- Syncs at 07:00 and 20:00 UTC through `health-sync.timer`. To pull fresh
+  data now, run `systemctl --user start health-sync.service`. Never write the
+  sync's output yourself: it owns `raw/health-*.md`.
+- Gym sessions and weigh-ins: logged by you, from chat.
+- Google Calendar and Gmail: claude.ai connector tools, loaded at session
+  start. If they are missing, say so. The usual causes are a session started
+  before a connector was added (fixed by the next context refresh) or an
+  expired `claude` login on the host.
+
+**Commands** (run from the repo root)
+
+```bash
+python3 infra/trainer.py summary --days 14            # recovery, workouts, gym, weight
+python3 infra/trainer.py gym --days 28                 # recent sessions with ids
+python3 infra/trainer.py history "Bench press"         # sets and estimated 1RM over time
+python3 infra/trainer.py log-gym --json '<session JSON>'
+python3 infra/trainer.py delete-gym <id>
+python3 infra/trainer.py weigh-in 82.4 [--date YYYY-MM-DD]
+```
+
+Add `--json-output` before the subcommand for machine-readable output. The
+session JSON shape is documented at the top of `infra/trainer.py`.
+
+**Workflows**
+
+- *Training questions* ("how's my week", "should I run today", "plan next
+  week"): read `wiki/training.md` and the `training`-tagged goal and concept
+  pages it links to, then run `summary`. Ground the answer in both: the
+  numbers, measured against the goals and constraints on record. Flag
+  missing data rather than guessing, since the watch does not always sync.
+- *Recording judgement*: when the owner states a training goal, a programme
+  decision, or a lasting preference, file it without asking. A goal becomes
+  a `goal` page with a status line; a preference or principle becomes a
+  `concept` page. Injuries, illness and other medical details: confirm once
+  before filing, per the conversation memory rules. Tag every such page
+  `training`, link it both ways with `[[training]]`, update the hub's
+  "Current focus" when the block changes, and keep index and log current.
+- *Reviews*: when asked to review a week or a block, run `summary` for the
+  period and write a date-prefixed `source` page tagged `training-review`
+  (for example `2026-09-14-training-week.md`). Cover the numbers, what went
+  well, watch-outs, and next week's focus. Link it both ways with
+  `[[training]]` and with every goal or concept page it discusses. Reply in
+  chat with the three most important points only.
+- *Training plans*: when the owner sets a performance goal and asks for a
+  plan (for example "train me for a 20-minute 5k, three runs a week, but I
+  won't follow it strictly because I run with friends"), create one `goal`
+  page for it, tagged `[training, running, active-plan]` and linked both ways
+  with `[[training]]`. Only one page may carry `active-plan`; remove the tag
+  when a plan is finished or abandoned. Use exactly this structure, because
+  the `training-check` job reads and rewrites it:
+
+  ```markdown
+  ## Goal
+  Target, date if any, and the current estimate from recent runs.
+
+  ## Approach
+  Weekly shape, target paces, and how flexibility is handled.
+
+  ## This week
+  <!-- plan:start -->
+  Week of 2026-09-14
+  - **Tue 15** — Intervals: 5 × 1 km @ 3:55/km, 2 min jog recovery · planned
+  - **Thu 17** — Tempo: 20 min @ 4:15/km · planned
+  - **Sun 20** — Long easy: 10 km @ 5:15/km · planned
+  <!-- plan:end -->
+
+  ## Plan changes
+  <!-- changes:start -->
+  - 2026-09-14: Plan created
+  <!-- changes:end -->
+  ```
+
+  Statuses are `planned`, `done: <actual>` or `dropped`. Base paces on real
+  recent runs from `summary`, not on the target alone. The plan is flexible:
+  a social or unplanned run replaces the session it best matches, and the
+  rest of the week is reshaped around it.
+- *Plan updates from chat*: when the owner reports a run or a change ("ran
+  8k with friends", "can't run Thursday"), update the plan block and add a
+  line under Plan changes straight away. The `training-check` job does the
+  same every evening at 21:15 UTC from Google Health data and messages the
+  owner only when it changed something, so it will not repeat your update.
+- *Important emails* ("any important emails?"): search Gmail for unread mail
+  from the last three days, skipping promotions, social and newsletters.
+  Flag mail from real people expecting a reply, UCL and course admin,
+  deadlines, bookings and travel, bills, payments and security alerts. Reply
+  with at most five lines: sender, one-line gist, action needed. Say plainly
+  when nothing is important. Do not mark read, archive or label unless asked.
+- *Logging a session*: when the owner describes a workout in chat, parse it
+  into the session JSON and log it straight away. Use one exercise name per
+  movement consistently (check `gym` for existing names), convert pounds to
+  kg, and use today's date unless another is given. Reply with one line:
+  exercises, sets, volume, session id. Ask a single question only if reps or
+  load are genuinely missing. To correct a session, delete it and log the
+  fixed version.
+- *Weigh-ins*: log any body weight the owner reports.
+- *Scheduling*: read the calendar to find free slots around commitments.
+  Create or move events only after the owner confirms the proposed time.
+- *Email*: search and read Gmail for training-relevant items (race
+  confirmations, class bookings, coach messages). Never send, reply, or
+  forward without the owner approving the exact text.
+
 ## Chat channel discipline
 
 Replies to the owner usually go through a chat channel such as Telegram.

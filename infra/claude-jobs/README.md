@@ -63,8 +63,9 @@ stays the single source of truth: edit `SCHEDULE`, re-run install.
 | `ADD_DIR` | Extra directories the session may read, space separated. |
 | `PROMPT_FILE` / `PROMPT` | The prompt, from `prompts/` or inline. |
 | `SYSTEM_PROMPT_FILE` / `SYSTEM_PROMPT` | Same, for the system prompt. |
-| `PRE_COMMAND` | Runs first; its stdout replaces `{input}` in the prompt. |
+| `PRE_COMMAND` | Runs first; its stdout replaces `{input}` in the prompt. Exit status 3 skips the run without calling Claude. |
 | `POST_COMMAND` | Handler in `handlers/`. Reads the validated output, does job-specific writing, prints what to deliver. |
+| `ALLOW_EMPTY_POST_OUTPUT` | `1` lets the handler print nothing, meaning there is nothing to deliver this run. |
 | `GUARD_PATHS` | Paths fingerprinted before and after the call. Any change fails the run. |
 | `VALIDATOR` | Script in `validators/`. Non-zero exit blocks delivery. |
 | `REQUIRED_ENV` | Space-separated env vars that must be set. |
@@ -104,12 +105,13 @@ repository.
 
 ## Jobs shipped here
 
-Two examples ship here. Copy the one whose shape matches what you want.
+Two examples and one real job ship here. Copy the one whose shape matches what you want.
 
 | Job | Schedule | Delivery | Shows |
 |---|---|---|---|
 | `wiki-contradiction-sweep` | Nightly 03:32 | Dated file | A read-only audit with a tool denylist |
 | `weekly-digest` | Sundays 18:00 | Telegram | A length budget, compression, and a chat id from `runtime.env` |
+| `training-check` | Daily 21:15 UTC | Telegram, only when the plan changed | A tool-less model whose answer a handler writes into the wiki under the vault lock |
 
 Neither is scheduled by installing. Turn one on with `claude-jobs install
 <name>` once its dry run looks right.
