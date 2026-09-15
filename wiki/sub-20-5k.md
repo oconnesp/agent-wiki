@@ -2,7 +2,7 @@
 type: goal
 tags: [training, running, active-plan]
 created: 2026-09-14
-updated: 2026-09-14
+updated: 2026-09-15
 related:
   - "[[training]]"
 ---
@@ -63,7 +63,7 @@ Race or final time trial: ~Dec 7.
 Week of 2026-09-14
 - **Mon 14** — Easy 5 km @ 6:00/km · done: 5.0 km, 6:00/km, HR 156
 - **Mon 14** — Upper gym · done: Pull-ups 8/7/7, Dips 3×10, Bench 80 kg 8/6/6, Cable rows 3×10, Curls 15 kg 3×10
-- **Tue 15** — Intervals: 6 × 800 m @ 4:00–4:10/km, 90 s jog recovery · planned
+- **Tue 15** — Intervals: 6 × 800 m @ 4:00–4:10/km, standing rest · done: all reps sub-4:00/km
 - **Wed 16** — Lower gym · planned
 - **Fri 18** — Long easy: 14 km @ 5:40/km with Callum · planned
 - **Sat 19** — Upper gym · planned
@@ -72,4 +72,5 @@ Week of 2026-09-14
 ## Plan changes
 <!-- changes:start -->
 - 2026-09-14: Plan created. 5k PB 22:09 from Strava (Aug 2026); Fitbit tracking all runs from now. 12-week programme added: Phase 1 foundation, Phase 2 interval/tempo development, Phase 3 race sharpening. Flexibility rule added — social runs reshape the week, never dropped. Time trials at weeks 6 and 10.
+- 2026-09-15: Tue intervals done — all 6 × 800 m sub-4:00/km (target was 4:00–4:10/km).
 <!-- changes:end -->
